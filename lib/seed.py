@@ -3,6 +3,7 @@ import sys
 import random
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from datetime import datetime
 from faker import Faker
 
 # Get the directory of the script
@@ -15,13 +16,15 @@ project_root = os.path.abspath(os.path.join(current_dir, '..'))
 sys.path.append(project_root)
 
 # Now you can import modules from the 'lib' package (not 'db')
-from lib.models import Student, Subject, Base, session, Teacher
+from lib.models import Student, Subject, Base, session, Teacher, Attendance, Grade
 
 
 if __name__ == '__main__':
     session.query(Student).delete()
     session.query(Subject).delete()
     session.query(Teacher).delete()
+    session.query(Attendance).delete()
+    session.query(Grade).delete()
     
 
 
@@ -75,47 +78,99 @@ if __name__ == '__main__':
 
     session.commit()
 
-teacher_names = ["Alice Smith", "John Johnson", "Emily Davis", "Michael Wilson"]
+    # ...
 
-teachers = []
-# Create a shuffled list of student IDs
-shuffled_student_ids = [student.student_id for student in students]
-random.shuffle(shuffled_student_ids)
+    teacher_names = ["Alice Smith", "John Johnson", "Emily Davis", "Michael Wilson"]
 
-# Create a list of associations
-associations = []
+    # Create a list of unique subject IDs
+    unique_subject_ids = [subject.id for subject in subjects]
 
-# Create instances of Teacher with shuffled student IDs and random subjects
-for teacher_name in teacher_names:
-    for x in range(len(students)):
-        if not shuffled_student_ids:  # If the list is empty, shuffle it again
-            shuffled_student_ids = [student.student_id for student in students]
-            random.shuffle(shuffled_student_ids)
+    teachers = []
+
+    # Create instances of Teacher with shuffled student IDs and random subjects
+    for student in students:
+        # Shuffle the list of unique subject IDs to ensure randomness
+        random.shuffle(unique_subject_ids)
+
+        # Take the first 4 subjects from the shuffled list (or fewer if there are fewer unique subjects)
+        assigned_subjects = unique_subject_ids[:4]
+
+        for teacher_name, subject_id in zip(teacher_names, assigned_subjects):
+            teacher = Teacher(
+                name=teacher_name,
+                student_id=student.student_id,
+                subject_id=subject_id
+            )
+            session.add(teacher)
+            teachers.append((teacher, student.student_id, subject_id))
+
+    # Commit the session to save the teachers to the database
+    try:
+        session.commit()
+        print("Teachers seeded successfully.")
+        for teacher, student_id, subject_id in teachers:
+            print(f"Teacher: {teacher.name}, Student ID: {student_id}, Subject: {subject_id}")
+    except Exception as e:
+        session.rollback()
+        print(f"Error during session commit: {str(e)}")
+
+    # ...
+
+    attendances = []
+    for teacher, student_id, subject_id in teachers:
+        attendance_record = Attendance(
+            student_id=student_id,
+            subject_id=subject_id,
+            attendance_date=datetime.now(),
+            checkin_time=datetime.now(),
+            checkout_time=None,
+            attendance_status=False
+        )
+
+        session.add(attendance_record)
+        attendances.append(attendance_record)
+
+    session.commit()
+
+
+
+    
+# Create a dictionary to map students to their subjects
+student_subject_mapping = {}
+for teacher, student_id, subject_id in teachers:
+    if student_id not in student_subject_mapping:
+        student_subject_mapping[student_id] = []
+    student_subject_mapping[student_id].append(subject_id)
+
+
+grades = []
+
+# Iterate through students and assign grades for the subjects they are teaching
+for student in students:
+    student_id = student.student_id
+
+    # Check if the student is teaching any subjects
+    if student_id in student_subject_mapping:
+        subject_ids = student_subject_mapping[student_id]
         
-        # Pop a student ID from the shuffled list
-        student_id = shuffled_student_ids.pop()
+        for subject_id in subject_ids:
+            grade_value = random.randint(0, 100)
 
-        # Randomly select a subject from the existing records
-        subject = random.choice(subjects)
-        
-        teacher = Teacher(
-            name=random.choice(teacher_names), 
-            student_id=student_id, 
-            subject_id=subject.id)
-            
-        session.add(teacher)
-        associations.append((teacher, student_id, subject))
+            grade = Grade(
+                student_id=student_id,
+                subject_id=subject_id,
+                grade_value=grade_value
+            )
 
-# Commit the session to save the teachers to the database
+            session.add(grade)
+            grades.append(grade)
+
+            print(f"Assigned Grade: Student ID {student_id}, Subject ID {subject_id}, Grade {grade_value}")
+
+# Commit the session to save the grades to the database
 try:
     session.commit()
-    print("Teachers seeded successfully.")
-    for teacher, student_id, subject in associations:
-        print(f"Teacher: {teacher.name}, Student ID: {student_id}, Subject: {subject.name}")
+    print("Grades seeded successfully.")
 except Exception as e:
     session.rollback()
     print(f"Error during session commit: {str(e)}")
-
-
-
-

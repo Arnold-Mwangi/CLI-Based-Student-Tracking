@@ -1,9 +1,10 @@
-from sqlalchemy import String, Integer, PrimaryKeyConstraint,CheckConstraint, Boolean, ForeignKeyConstraint, ForeignKey, MetaData, Sequence,Column, text
+from sqlalchemy import String, Integer, PrimaryKeyConstraint,CheckConstraint, Boolean, ForeignKeyConstraint, ForeignKey, MetaData, Sequence,Column, text, DateTime
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine, UniqueConstraint, Table
+from datetime import datetime
 
 convention = {
     "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
@@ -38,6 +39,8 @@ class Student(Base):
 
     teachers = relationship('Teacher', back_populates='student')
     subjects = relationship('Subject', secondary=student_subject_association, back_populates='students')
+    attendances = relationship("Attendance", back_populates="student")
+    grades = relationship('Grade', back_populates='student') 
 
 
 class Subject(Base):
@@ -49,7 +52,10 @@ class Subject(Base):
     subject_code = Column(String())
 
     teachers = relationship('Teacher', back_populates='subject')
+    attendances = relationship('Attendance', back_populates='subject') 
     students =relationship('Student', secondary=student_subject_association, back_populates='subjects')
+
+    grades = relationship('Grade', back_populates='subject') 
 
 
 class Teacher(Base):
@@ -62,3 +68,31 @@ class Teacher(Base):
 
     student = relationship('Student', back_populates='teachers')
     subject=relationship('Subject', back_populates='teachers')
+
+
+class Attendance(Base):
+    __tablename__ = 'attendances'
+
+
+    attendance_id = Column(Integer, primary_key=True)
+    student_id = Column(Integer, ForeignKey('students.student_id'))
+    subject_id = Column(Integer, ForeignKey('subjects.id'))
+    attendance_date = Column(DateTime, default=datetime.now)
+    checkin_time = Column(DateTime)
+    checkout_time = Column(DateTime)
+    attendance_status = Column(Boolean()) 
+    
+    student = relationship("Student", back_populates="attendances")
+    subject = relationship("Subject", back_populates="attendances")
+
+
+class Grade(Base):
+    __tablename__ = 'grades'
+
+    grade_id = Column(Integer, primary_key=True)
+    student_id = Column(Integer, ForeignKey('students.student_id'))
+    subject_id = Column(Integer, ForeignKey('subjects.id'))
+    grade_value = Column(Integer())
+
+    student = relationship("Student", back_populates="grades")
+    subject = relationship("Subject", back_populates="grades")
