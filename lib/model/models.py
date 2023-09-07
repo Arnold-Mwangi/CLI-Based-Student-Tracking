@@ -5,6 +5,7 @@ from sqlalchemy.orm import relationship, backref
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine, UniqueConstraint, Table
 from datetime import datetime
+import os
 
 convention = {
     "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
@@ -14,7 +15,11 @@ metadata = MetaData(naming_convention= convention)
 
 Base = declarative_base(metadata=metadata)
 
-engine = create_engine('sqlite:///bukura.db')
+project_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+
+db_file = os.path.join(project_dir, 'model', 'bukura.db')
+engine = create_engine(f'sqlite:///{db_file}')
+
 
 Session = sessionmaker(bind =  engine)
 
@@ -36,12 +41,16 @@ class Student(Base):
     last_name = Column(String())
     gender = Column(String())
     phone_number = Column(String())
+    admission_id = Column(String(), nullable=True)
 
     teachers = relationship('Teacher', back_populates='student')
     subjects = relationship('Subject', secondary=student_subject_association, back_populates='students')
     attendances = relationship("Attendance", back_populates="student")
-    grades = relationship('Grade', back_populates='student') 
+    grades = relationship('Grade', back_populates='student')
+        
 
+    def __repr__(self):
+        return f"<Student {self.first_name}  {self.gender}  {self.phone_number}"
 
 class Subject(Base):
     __tablename__ = "subjects"
