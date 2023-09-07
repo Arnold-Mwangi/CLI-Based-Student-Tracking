@@ -16,7 +16,7 @@ project_root = os.path.abspath(os.path.join(current_dir, '..'))
 sys.path.append(project_root)
 
 # Now you can import modules from the 'lib' package (not 'db')
-from lib.models import Student, Subject, Base, session, Teacher, Attendance, Grade
+from models import Student, Subject, Base, session, Teacher, Attendance, Grade
 
 
 if __name__ == '__main__':
