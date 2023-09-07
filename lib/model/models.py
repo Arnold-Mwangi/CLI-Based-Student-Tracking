@@ -40,7 +40,7 @@ class Student(Base):
     first_name = Column(String())
     last_name = Column(String())
     gender = Column(String())
-    phone_number = Column(String())
+    phone_number = Column(Integer())
     admission_id = Column(String(), nullable=True)
 
     teachers = relationship('Teacher', back_populates='student')

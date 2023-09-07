@@ -35,18 +35,34 @@ if __name__ == '__main__':
         return cleaned_number
 
     students = []
+    current_year = datetime.now().year
+    last_two_digits_of_year = current_year % 100
+
+    admission_id_prefix = f"BUK/{last_two_digits_of_year}/"
+
     for x in range(50):
         student = Student(
             first_name=fake.unique.first_name(),
             last_name=fake.unique.last_name(),
             gender=fake.random_element(elements=('Male', 'Female')),
-            phone_number=clean_phone_number(fake.unique.phone_number())
+            phone_number=clean_phone_number(fake.unique.phone_number()),
+            admission_id = None
         )
 
         session.add(student)
         students.append(student)
     
-    session.commit()
+        session.commit()
+
+        new_student_id = student.student_id
+
+        admission_id =f"{admission_id_prefix}{new_student_id}"
+
+        student.admission_id =admission_id
+            
+        session.add(student)
+
+        session.commit()
 
     technical_courses = {
         "Machine Learning and Artificial Intelligence": "CS101",
