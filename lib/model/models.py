@@ -43,7 +43,7 @@ class Student(Base):
     phone_number = Column(Integer())
     admission_id = Column(String(), nullable=True)
 
-    teachers = relationship('Teacher', back_populates='student')
+    lessons = relationship('Lesson', back_populates='student')
     subjects = relationship('Subject', secondary=student_subject_association, back_populates='students')
     attendances = relationship("Attendance", back_populates="student")
     grades = relationship('Grade', back_populates='student')
@@ -60,23 +60,37 @@ class Subject(Base):
     name = Column(String())
     subject_code = Column(String())
 
-    teachers = relationship('Teacher', back_populates='subject')
+    lessons = relationship('Lesson', back_populates='subject')
     attendances = relationship('Attendance', back_populates='subject') 
+    teachers = relationship('Teacher', back_populates='subject')
+
     students =relationship('Student', secondary=student_subject_association, back_populates='subjects')
 
     grades = relationship('Grade', back_populates='subject') 
 
 
 class Teacher(Base):
-    __tablename__ = "teachers"
+    __tablename__ = 'teachers'
+    
+
+    teacher_id = Column(Integer , primary_key=True)
+    name = Column(String())
+    phone = Column(String())
+    subject_id = Column(Integer, ForeignKey('subjects.id'))
+
+    subject = relationship('Subject', back_populates='teachers')
+
+class Lesson(Base):
+    __tablename__ = "lessons"
 
     id = Column(Integer, primary_key=True)
-    name = Column(String)
+    teacher_id = Column(Integer, ForeignKey('teachers.teacher_id'))
+    subject_name = Column(String())
     student_id = Column(Integer, ForeignKey('students.student_id'))
     subject_id = Column(String, ForeignKey('subjects.id'))
 
-    student = relationship('Student', back_populates='teachers')
-    subject=relationship('Subject', back_populates='teachers')
+    student = relationship('Student', back_populates='lessons')
+    subject=relationship('Subject', back_populates='lessons')
 
 
 class Attendance(Base):

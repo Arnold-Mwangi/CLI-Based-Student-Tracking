@@ -3,6 +3,7 @@ import os
 from datetime import datetime
 from .models import Student, session
 from tabulate import tabulate
+import click
 
 # Add the parent directory (project directory) to the Python path
 current_dir = os.path.dirname(__file__)
@@ -199,9 +200,9 @@ class StudentManager:
 
 
 student_manager = StudentManager(session)
-# new_student = student_manager.addstudent()
+# # new_student = student_manager.addstudent()
 
-# student_manager.update_student()
-# student_manager.get_student_by_id()
-# student_manager.delete_student()
-student_manager.generate_student_report()
+# # student_manager.update_student()
+# # student_manager.get_student_by_id()
+# # student_manager.delete_student()
+# student_manager.generate_student_report()

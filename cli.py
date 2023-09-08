@@ -1,5 +1,5 @@
 import click
-from lib.model.students import student_manager
+from lib.model.students import student_manager as student_manager
 
 @click.group()
 def cli():
